@@ -51,7 +51,8 @@ h1{font-size:22px;margin:0}.sub{color:#c8d9e7;font-size:13px}main{max-width:1050
 <div id="recordList" class="record-list"></div>
 </div>
 <div class="note">重要：浏览器清理网站数据、换手机或换电脑可能导致本地记录丢失。建议定期导出 PDF 备份；本工具不替代正式工单、工作票及企业记录系统。</div>
-</section>\n<footer>PowerOps · 现场辅助工具。计算结果仅供技术参考，不构成设计、施工或操作指令。</footer></main>
+</section>
+<footer>PowerOps · 现场辅助工具。计算结果仅供技术参考，不构成设计、施工或操作指令。</footer></main>
 <script>
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.view').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.tab))}));
 const n=id=>Number(document.getElementById(id).value),out=(id,s)=>{let e=document.getElementById(id);e.innerHTML=s;e.style.display='block'};
@@ -77,5 +78,6 @@ function deleteRecord(id){if(!confirm('确定删除这条现场记录吗？删�
 function printRecords(){let a=readRecords();if(!a.length){alert('暂无记录可导出。');return}printRecordData(a,'PowerOps 现场运维记录汇总')}
 function printOneRecord(id){let r=readRecords().find(x=>x.id===id);if(r)printRecordData([r],'PowerOps 现场运维记录')}
 function printRecordData(a,title){let rows=a.map((r,i)=>'<article><h2>记录 '+(i+1)+'：'+safeText(r.site||'未填写站点')+'</h2><table><tr><th>日期时间</th><td>'+safeText((r.date||'').replace('T',' '))+'</td><th>记录类型</th><td>'+safeText(r.type)+'</td></tr><tr><th>设备</th><td>'+safeText(r.device)+'</td><th>状态</th><td>'+safeText(r.status)+'</td></tr><tr><th>电压</th><td>'+safeText(r.voltage)+' V</td><th>电流</th><td>'+safeText(r.current)+' A</td></tr><tr><th>温度</th><td colspan="3">'+safeText(r.temp)+' ℃</td></tr><tr><th>现场情况</th><td colspan="3">'+safeText(r.desc).replace(/\n/g,'<br>')+'</td></tr><tr><th>处理措施</th><td colspan="3">'+safeText(r.action).replace(/\n/g,'<br>')+'</td></tr><tr><th>后续备注</th><td colspan="3">'+safeText(r.follow).replace(/\n/g,'<br>')+'</td></tr></table></article>').join('');let w=window.open('','_blank');if(!w){alert('浏览器拦截了打印窗口，请允许此网站弹出窗口后重试。');return}w.document.write('<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>'+title+'</title><style>body{font:14px/1.6 Arial,"Microsoft YaHei",sans-serif;color:#172536;padding:24px}h1{font-size:22px}h2{font-size:17px;margin:20px 0 8px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #aebbc8;padding:8px;text-align:left;vertical-align:top}th{width:15%;background:#f1f5f8}article{page-break-inside:avoid;margin-bottom:28px}.foot{color:#667;font-size:12px;margin-top:24px}@media print{body{padding:0}button{display:none}}</style></head><body><h1>'+title+'</h1><p>导出时间：'+new Date().toLocaleString('zh-CN')+'　记录数量：'+a.length+'</p>'+rows+'<p class="foot">PowerOps 电力运维助手 · 本记录由现场人员填写，请核对数据准确性并按企业制度归档。</p><script>window.onload=function(){window.print()}<\/script></body></html>');w.document.close()}
-\nsetRecordDate();renderRecords();\npower();trans();cable();fault();
+
+setRecordDate();renderRecords();\npower();trans();cable();fault();
 </script></body></html>
