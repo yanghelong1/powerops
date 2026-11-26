@@ -25,19 +25,29 @@ h1{font-size:22px;margin:0}.sub{color:#c8d9e7;font-size:13px}main{max-width:1050
 <section id="cable" class="view hidden"><div class="panel"><h2>三相线路电压降估算</h2><p class="desc">简化阻抗模型，仅用于初步核算。</p><div class="grid"><div class="field"><label>线路单程长度（m）</label><input id="cL" type="number" value="100"></div><div class="field"><label>负载电流（A）</label><input id="cI" type="number" value="60"></div><div class="field"><label>导体材质</label><select id="cMat"><option value=".018">铜</option><option value=".0282">铝</option></select></div><div class="field"><label>截面（mm²）</label><select id="cS"><option>10</option><option>16</option><option selected>25</option><option>35</option><option>50</option><option>70</option><option>95</option><option>120</option><option>150</option><option>185</option><option>240</option></select></div><div class="field"><label>线电压（V）</label><input id="cU" type="number" value="380"></div><div class="field"><label>功率因数 cosφ</label><input id="cPF" type="number" value=".85" step=".01"></div></div><div class="actions"><button class="btn" onclick="cable()">估算压降</button></div><div id="cOut" class="result"></div><div class="note">未完整计入电抗、温度修正、敷设方式、并联根数及短路热稳定。工程应用须按现行标准复核。</div></div></section>
 
 <section id="resistance" class="view hidden"><div class="panel">
-<h2>电缆导体电阻计算</h2>
-<p class="desc">根据导体材质、长度、截面、并联根数和导体温度，估算单根导体直流电阻。</p>
+<h2>电缆电阻与线损计算</h2>
+<p class="desc">先根据电缆参数计算导体电阻，再结合实际运行电流估算线路有功损耗、每天/月电量损耗及电费。</p>
 <div class="grid">
 <div class="field"><label>导体材质</label><select id="rMat" onchange="resistance()"><option value="0.0175,0.00393">铜（Cu）</option><option value="0.0282,0.00403">铝（Al）</option></select></div>
-<div class="field"><label>导体截面（mm²）</label><select id="rSection"><option>1.5</option><option>2.5</option><option>4</option><option>6</option><option>10</option><option>16</option><option selected>25</option><option>35</option><option>50</option><option>70</option><option>95</option><option>120</option><option>150</option><option>185</option><option>240</option><option>300</option><option>400</option></select></div>
+<div class="field"><label>导体截面（mm²）</label><select id="rSection"><option>1.5</option><option>2.5</option><option>4</option><option>6</option><option>10</option><option>16</option><option>25</option><option>35</option><option>50</option><option>70</option><option>95</option><option>120</option><option>150</option><option>185</option><option>240</option><option>300</option><option>400</option></select></div>
 <div class="field"><label>线路单程长度（m）</label><input id="rLength" type="number" min="0" step="any" value="100"></div>
 <div class="field"><label>并联导体根数（每相）</label><input id="rParallel" type="number" min="1" step="1" value="1"></div>
 <div class="field"><label>导体工作温度（℃）</label><input id="rTemperature" type="number" step="any" value="20"></div>
+<div class="field"><label>供电方式 / 负载情况</label><select id="rLossMode" onchange="toggleLossInputs()"><option value="single">单相两线制</option><option value="balanced">三相平衡负载</option><option value="unbalanced">三相四线制不平衡负载</option></select></div>
+<div class="field" id="rCommonCurrentField"><label id="rCommonCurrentLabel">单相运行电流（A）</label><input id="rCurrent" type="number" min="0" step="any" value="100"></div>
+<div class="field hidden" id="rIaField"><label>A相电流（A）</label><input id="rIa" type="number" min="0" step="any" value="100"></div>
+<div class="field hidden" id="rIbField"><label>B相电流（A）</label><input id="rIb" type="number" min="0" step="any" value="100"></div>
+<div class="field hidden" id="rIcField"><label>C相电流（A）</label><input id="rIc" type="number" min="0" step="any" value="100"></div>
+<div class="field hidden" id="rInField"><label>实测零线电流（A）</label><input id="rIn" type="number" min="0" step="any" value="0"></div>
+<div class="field"><label>每天运行小时数（h）</label><input id="rHours" type="number" min="0" max="24" step=".5" value="24"></div>
+<div class="field"><label>每月运行天数（天）</label><input id="rDays" type="number" min="0" max="31" step="1" value="30"></div>
+<div class="field"><label>电价（元/kWh）</label><input id="rTariff" type="number" min="0" step=".01" value=".8"></div>
 </div>
-<div class="actions"><button class="btn" onclick="resistance()">计算电阻</button></div>
+<div class="actions"><button class="btn" onclick="resistance()">计算电阻</button><button class="btn" onclick="calculateLineLoss()">计算线损功率与电费</button></div>
 <div id="rOut" class="result"></div>
-<div class="note">计算采用20℃参考电阻率近似值：铜0.0175、铝0.0282 Ω·mm²/m，并按温度系数修正。结果为导体直流电阻估算，不含接头、端子和接触电阻；交流运行阻抗还受频率、集肤效应、邻近效应及敷设方式影响。工程选型和验收应以适用标准及实测结果为准。</div>
-</div></section>
+<div id="rLossOut" class="result"></div>
+<div class="note">电阻按20℃参考电阻率及温度系数估算，结果为导体直流电阻，不含接头、端子和接触电阻。线损按 I²R 计算，假设各相导体长度、截面、材质和并联根数一致；单相按火线与零线电阻相等估算。三相不平衡模式需输入实测零线电流。未计交流电抗、集肤效应、邻近效应及谐波附加损耗；月电费按输入电价和运行时间估算。工程核算应结合实测电流、导体温度及实际线路参数复核。</div>
+</div></section>>
 <section id="ampacity" class="view hidden"><div class="panel">
 <h2>铜 / 铝电缆载流量估算</h2>
 <p class="desc">覆盖常用导体截面 1.5～400 mm²。按 PVC 70℃绝缘、空气环境 30℃、3 根载流导体的参考基准值估算，并可按环境温度、载流芯数和成束情况修正。</p>
@@ -112,8 +122,49 @@ const n=id=>Number(document.getElementById(id).value),out=(id,s)=>{let e=documen
 function power(){let u=n('pU'),p=n('pP'),pf=n('pPF'),eff=n('pEff')/100;if(!(u>0&&p>=0&&pf>0&&pf<=1&&eff>0&&eff<=1))return out('pOut','输入有误，请检查参数。');let i=p*1000/(Math.sqrt(3)*u*pf*eff);out('pOut','<strong>'+i.toFixed(2)+' A</strong><small>估算线电流；计算假设输入功率为设备有功输出功率，并计入效率。</small>')}
 function trans(){let k=n('tKva'),u=n('tV'),a=n('tA');if(!(k>0&&u>0&&a>=0))return out('tOut','输入有误。');let r=k*1000/(Math.sqrt(3)*u),l=a/r*100;out('tOut','<strong>额定低压电流：'+r.toFixed(1)+' A</strong><small>当前负载率约 '+l.toFixed(1)+'%。负载率不能单独作为继续运行的结论。</small>')}
 
-function resistance(){let v=document.getElementById('rMat').value.split(','),rho=Number(v[0]),alpha=Number(v[1]),a=n('rSection'),l=n('rLength'),p=n('rParallel'),t=n('rTemperature');if(!(a>0&&l>=0&&Number.isInteger(p)&&p>=1&&Number.isFinite(t)))return out('rOut','输入有误，请检查截面、长度、并联根数和温度。');let r20=rho*l/(a*p),rt=r20*(1+alpha*(t-20)),perKm=rho*1000/(a*p)*(1+alpha*(t-20)),loop=rt*2;out('rOut','<strong>'+rt.toFixed(5)+' Ω</strong><small>单程单根并联组等效电阻（'+t.toFixed(1)+'℃）</small><p>20℃参考电阻：'+r20.toFixed(5)+' Ω</p><p>温度修正后每公里电阻：'+perKm.toFixed(4)+' Ω/km</p><p>单相往返回路电阻估算：'+loop.toFixed(5)+' Ω</p><small>并联根数按均流、长度和截面一致估算。</small>')}
-
+function resistanceData(){
+ const v=document.getElementById('rMat').value.split(','),rho=Number(v[0]),alpha=Number(v[1]),a=n('rSection'),l=n('rLength'),p=n('rParallel'),t=n('rTemperature');
+ if(!(rho>0&&alpha>0&&a>0&&l>0&&Number.isInteger(p)&&p>=1&&Number.isFinite(t)))return null;
+ const r20=rho*l/(a*p),rt=r20*(1+alpha*(t-20)),perKm=rho*1000/(a*p)*(1+alpha*(t-20));
+ return {r20,rt,perKm,t};
+}
+function resistance(){
+ const d=resistanceData();
+ if(!d)return out('rOut','输入有误，请检查截面、单程长度、并联根数和导体温度。');
+ out('rOut','<strong>'+d.rt.toFixed(5)+' Ω</strong><small>单程每相等效电阻（'+d.t.toFixed(1)+'℃）</small><p>20℃参考电阻：'+d.r20.toFixed(5)+' Ω</p><p>温度修正后每公里电阻：'+d.perKm.toFixed(4)+' Ω/km</p><p>单相往返回路电阻估算：'+(2*d.rt).toFixed(5)+' Ω</p><small>并联根数按均流、长度和截面一致估算。</small>');
+}
+function toggleLossInputs(){
+ const mode=document.getElementById('rLossMode').value,unbalanced=mode==='unbalanced';
+ document.getElementById('rCommonCurrentField').classList.toggle('hidden',unbalanced);
+ ['rIaField','rIbField','rIcField','rInField'].forEach(id=>document.getElementById(id).classList.toggle('hidden',!unbalanced));
+ document.getElementById('rCommonCurrentLabel').textContent=mode==='single'?'单相运行电流（A）':'三相线电流（A）';
+}
+function calculateLineLoss(){
+ const d=resistanceData();
+ if(!d)return out('rLossOut','输入有误，请先检查电缆材质、截面、长度、并联根数和温度。');
+ const mode=document.getElementById('rLossMode').value,h=n('rHours'),days=n('rDays'),tariff=n('rTariff');
+ if(!(h>=0&&h<=24&&days>=0&&days<=31&&tariff>=0))return out('rLossOut','请检查每天运行小时数、每月运行天数和电价。');
+ let lossW=0,detail='';
+ if(mode==='single'){
+  const current=n('rCurrent');
+  if(!(current>=0))return out('rLossOut','请输入有效的单相运行电流。');
+  lossW=current*current*d.rt*2;
+  detail='火线损耗 '+(current*current*d.rt).toFixed(2)+' W；零线损耗 '+(current*current*d.rt).toFixed(2)+' W';
+ }else if(mode==='balanced'){
+  const current=n('rCurrent');
+  if(!(current>=0))return out('rLossOut','请输入有效的三相线电流。');
+  lossW=3*current*current*d.rt;
+  detail='三相每相导体电阻相同，按 3×I²×R 计算';
+ }else{
+  const ia=n('rIa'),ib=n('rIb'),ic=n('rIc'),inn=n('rIn');
+  if(![ia,ib,ic,inn].every(x=>Number.isFinite(x)&&x>=0))return out('rLossOut','请输入有效的 A、B、C 相及零线电流。');
+  const pa=ia*ia*d.rt,pb=ib*ib*d.rt,pc=ic*ic*d.rt,pn=inn*inn*d.rt;
+  lossW=pa+pb+pc+pn;
+  detail='A相 '+pa.toFixed(2)+' W；B相 '+pb.toFixed(2)+' W；C相 '+pc.toFixed(2)+' W；零线 '+pn.toFixed(2)+' W';
+ }
+ const kw=lossW/1000,day=kw*h,month=day*days,cost=month*tariff;
+ out('rLossOut','<strong>'+lossW.toFixed(2)+' W（'+kw.toFixed(4)+' kW）</strong><small>估算线路导体有功损耗</small><p>'+detail+'</p><p>每天损耗电量：'+day.toFixed(3)+' kWh（运行 '+h+' 小时）</p><p>每月损耗电量：'+month.toFixed(2)+' kWh（'+days+' 天）</p><p>每月线损电费：<strong>'+cost.toFixed(2)+' 元</strong>（电价 '+tariff.toFixed(2)+' 元/kWh）</p><small>计算使用上述温度修正后的单相导体电阻；假设各相参数相同。实际线损会随负载和温度变化。</small>');
+}
 function ampacity(){
 const sections=[1.5,2.5,4,6,10,16,25,35,50,70,95,120,150,185,240,300,400];
 const cu=[14,19,25,32,43,57,75,92,110,140,170,192,219,248,291,334,387];
