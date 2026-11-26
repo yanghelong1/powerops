@@ -18,7 +18,7 @@ h1{font-size:22px;margin:0}.sub{color:#c8d9e7;font-size:13px}main{max-width:1050
 <body>
 <header><div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div><h1>⚡ 电力运维助手 <span style="font-size:13px;color:#c8d9e7">PowerOps</span></h1><div class="sub">现场计算 · 故障排查 · 工程验收 · 随身工具箱</div></div><button id="installApp" class="btn" style="background:#fff;color:#174b70;white-space:nowrap;padding:9px 12px">安装到手机</button></div></header>
 <main>
-<nav class="tabs"><button class="tab active" data-tab="power">电气计算</button><button class="tab" data-tab="transformer">变压器</button><button class="tab" data-tab="cable">电缆压降</button><button class="tab" data-tab="resistance">电缆电阻</button><button class="tab" data-tab="ampacity">载流量</button><button class="tab" data-tab="recommend">截面推荐</button><button class="tab" data-tab="fault">故障排查</button><button class="tab" data-tab="check">工程验收</button><button class="tab" data-tab="records">现场记录</button></nav>
+<nav class="tabs"><button class="tab active" data-tab="power">电气计算</button><button class="tab" data-tab="transformer">变压器</button><button class="tab" data-tab="cable">电缆压降</button><button class="tab" data-tab="resistance">电缆电阻</button><button class="tab" data-tab="ampacity">载流量</button><button class="tab" data-tab="recommend">截面推荐</button><button class="tab" data-tab="calcHistory">计算历史</button><button class="tab" data-tab="fault">故障排查</button><button class="tab" data-tab="check">工程验收</button><button class="tab" data-tab="records">现场记录</button></nav>
 <section id="power" class="view"><div class="panel"><h2>三相功率 / 电流计算</h2><p class="desc">按对称三相交流系统估算，效率按设备铭牌或实测值输入。</p><div class="grid">
 <div class="field"><label>线电压 U（V）</label><input id="pU" type="number" value="380"></div><div class="field"><label>有功功率 P（kW）</label><input id="pP" type="number" value="30"></div><div class="field"><label>功率因数 cosφ</label><input id="pPF" type="number" value=".85" step=".01"></div><div class="field"><label>效率 η（%）</label><input id="pEff" type="number" value="95"></div></div><div class="actions"><button class="btn" onclick="power()">计算电流</button></div><div id="pOut" class="result"></div></div></section>
 <section id="transformer" class="view hidden"><div class="panel"><h2>变压器额定电流与负载率</h2><p class="desc">适用于三相变压器容量及低压侧电流快速估算。</p><div class="grid"><div class="field"><label>容量（kVA）</label><input id="tKva" type="number" value="630"></div><div class="field"><label>低压线电压（V）</label><input id="tV" type="number" value="400"></div><div class="field"><label>实测线电流（A）</label><input id="tA" type="number" value="500"></div></div><div class="actions"><button class="btn" onclick="trans()">计算</button></div><div id="tOut" class="result"></div><div class="note">实际允许负载还需结合铭牌、环境温度、冷却方式、谐波及运行规程判断。</div></div></section>
@@ -85,6 +85,7 @@ h1{font-size:22px;margin:0}.sub{color:#c8d9e7;font-size:13px}main{max-width:1050
 <div id="qOut" class="result"></div>
 <div class="note">估算假设：使用本工具载流量页的 PVC 70℃参考数据及相同修正系数；电压降按导体电阻分量计算，忽略电抗、谐波、三相不平衡及接头电阻。该结果用于初步筛选，不是设计结论。实际项目必须按具体电缆型号、厂家载流量表、线路敷设细节及适用标准复核；长距离、大电流、启动冲击或重要负荷应进行完整电压降和短路热稳定校核。铝缆需使用匹配端子及规范压接工艺。</div>
 </div></section>
+<section id="calcHistory" class="view hidden"><div class="panel"><h2>电缆计算历史</h2><p class="desc">电缆压降、电阻与线损、载流量、截面推荐的成功计算会自动保存在本机；断网也可查看。</p><div class="actions"><button class="btn secondary" onclick="renderCalcHistory()">刷新历史</button><button class="btn danger" onclick="clearCalcHistory()">清空历史</button></div><div id="calcHistoryList" class="record-list"></div><div class="note">历史记录仅保存在当前手机 / 浏览器本地，不会自动同步到其他设备。清理网站数据或更换手机前，请先截图或另行备份重要结果。</div></div></section>
 <section id="fault" class="view hidden"><div class="panel"><h2>常见故障排查</h2><p class="desc">先确保人身安全；高压操作必须按工作票、操作票及规程执行。</p><div class="field"><label>选择故障现象</label><select id="faultType" onchange="fault()"><option value="hot">断路器 / 端子发热</option><option value="trip">低压断路器频繁跳闸</option><option value="phase">UPS 报相序错误</option><option value="neutral">零线电流异常</option><option value="temp">变压器温度偏高</option></select></div><div id="fOut" class="result" style="display:block"></div></div></section>
 <section id="check" class="view hidden"><div class="panel"><h2>配电 / 光伏工程验收清单</h2><p class="desc">勾选现场已核查项目；刷新页面后勾选状态会重置。</p><div id="checks"></div><div class="actions"><button class="btn" onclick="countChecks()">统计完成项</button><button class="btn" onclick="clearChecks()">清空</button></div><div id="ckOut" class="result"></div></div></section>
 
@@ -254,4 +255,43 @@ installButton.addEventListener('click',async()=>{
  else{alert('如浏览器菜单中提供“安装应用”或“添加到主屏幕”，请点击该选项完成安装。建议使用 Safari（iPhone）或 Chrome（安卓）。')}
 });
 if('serviceWorker' in navigator && location.protocol==='https:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(err=>console.warn('离线缓存注册失败：',err)))}
+
+// 电缆计算历史：计算成功后自动保存最近 100 条到本机
+const CALC_HISTORY_KEY='powerops_cable_calc_history_v1';
+function readCalcHistory(){try{return JSON.parse(localStorage.getItem(CALC_HISTORY_KEY)||'[]')}catch(e){return []}}
+function renderCalcHistory(){
+ const list=document.getElementById('calcHistoryList');if(!list)return;
+ const items=readCalcHistory();
+ if(!items.length){list.innerHTML='<div class="empty">还没有计算记录。完成一次电缆计算后，这里会自动保存。</div>';return}
+ list.innerHTML=items.map((x,i)=>'<div class="record-card"><h3>'+safeText(x.type)+'</h3><div class="record-meta">'+safeText(x.time)+'</div><p><b>计算结果：</b>'+safeText(x.result)+'</p><details><summary>查看计算输入参数</summary><p>'+Object.entries(x.params||{}).map(([k,v])=>safeText(k)+'：'+safeText(v)).join('<br>')+'</p></details><div class="record-actions"><button class="btn danger" onclick="deleteCalcHistory(\''+x.id+'\')">删除此条</button></div></div>').join('');
+}
+function saveCalcHistory(type,viewId,resultId){
+ const view=document.getElementById(viewId),result=document.getElementById(resultId);
+ if(!view||!result||result.style.display==='none'||!result.innerText.trim())return;
+ const resultText=result.innerText.trim();
+ if(/输入有误|请选择有效|暂无可靠参考值|请检查/.test(resultText))return;
+ const params={};
+ view.querySelectorAll('input,select,textarea').forEach(el=>{if(el.id)params[el.id]=el.value});
+ const item={id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),time:new Date().toLocaleString('zh-CN'),type,params,result:resultText};
+ try{const items=readCalcHistory();items.unshift(item);localStorage.setItem(CALC_HISTORY_KEY,JSON.stringify(items.slice(0,100)));renderCalcHistory()}catch(e){console.warn('计算历史保存失败：',e)}
+}
+document.addEventListener('click',event=>{
+ const button=event.target.closest('button[onclick]');if(!button)return;
+ const view=button.closest('.view');if(!view)return;
+ const label=button.textContent.trim();
+ const targets={
+  cable:['电缆压降','cOut'],
+  resistance:['电缆电阻','rOut'],
+  calculateLineLoss:['电缆线损','rLossOut'],
+  ampacity:['电缆载流量','aOut'],
+  recommendCable:['电缆截面推荐','qOut']
+ };
+ const match=Object.entries(targets).find(([fn])=>(button.getAttribute('onclick')||'').includes(fn));
+ if(!match)return;
+ saveCalcHistory(match[1][0],view.id,match[1][1]);
+});
+document.querySelector('[data-tab="calcHistory"]')?.addEventListener('click',renderCalcHistory);
+function deleteCalcHistory(id){localStorage.setItem(CALC_HISTORY_KEY,JSON.stringify(readCalcHistory().filter(x=>x.id!==id)));renderCalcHistory()}
+function clearCalcHistory(){if(!confirm('确定清空全部电缆计算历史吗？此操作无法恢复。'))return;localStorage.removeItem(CALC_HISTORY_KEY);renderCalcHistory()}
+renderCalcHistory();
 </script></body></html>
