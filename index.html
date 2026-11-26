@@ -52,7 +52,7 @@ h1{font-size:22px;margin:0}.sub{color:#c8d9e7;font-size:13px}main{max-width:1050
 </div>
 <div class="actions"><button class="btn" onclick="ampacity()">计算载流量</button></div>
 <div id="aOut" class="result"></div>
-<div class="note">重要说明：这是现场初步估算工具，不是国家标准载流量表。实际载流量受电缆型号（PVC/XLPE）、芯数与导体结构、敷设方式、土壤热阻、埋深、环境温度、回路间距、谐波及端子温度等级等影响。选型、保护配合和验收必须按电缆厂家数据及现行 GB/T 16895 等适用标准复核；铝导体还须匹配铝用端子并按工艺施工。不得仅凭本计算值确定断路器整定。</div>
+<div class="note">重要说明：这是现场初步估算工具，不是国家标准载流量表。实际载流量受电缆型号（PVC/XLPE）、芯数与导体结构、敷设方式、土壤热阻、埋深、环境温度、回路间距、谐波及端子温度等级等影响。电缆截面正式选型必须按电缆厂家数据及现行 GB/T 16895 等适用标准复核；铝导体还须匹配铝用端子并按工艺施工。</div>
 </div></section>
 <section id="recommend" class="view hidden"><div class="panel">
 <h2>电缆截面自动推荐与校核</h2>
@@ -69,15 +69,11 @@ h1{font-size:22px;margin:0}.sub{color:#c8d9e7;font-size:13px}main{max-width:1050
 <div class="field"><label>环境温度（℃）</label><select id="qAmbient"><option>25</option><option selected>30</option><option>35</option><option>40</option><option>45</option><option>50</option></select></div>
 <div class="field"><label>成束 / 并排敷设情况</label><select id="qGroup"><option value="1">单回路、间距充足（1.00）</option><option value=".8">2～3 回路成束（0.80）</option><option value=".7">4～6 回路成束（0.70）</option><option value=".65">7～9 回路成束（0.65）</option><option value=".6">密集成束（0.60）</option></select></div>
 <div class="field"><label>允许电压降（%）</label><input id="qDrop" type="number" min=".1" max="15" step=".1" value="5"></div>
-<div class="field"><label>断路器类型</label><select id="qBreakerType"><option value="mcb">小型断路器 MCB（按 IEC 60898 参考）</option><option value="mccb">塑壳断路器 MCCB（按可调脱扣器）</option></select></div>
-<div class="field"><label>塑壳长延时整定电流 Ir（A，仅MCCB）</label><input id="qMccbIr" type="number" min="1" step="1" value="60"></div>
-<div class="field"><label>MCCB 制造商 I2 / Ir 系数（可选）</label><input id="qI2ratio" type="number" min="1" max="2" step=".01" placeholder="按脱扣器资料填写"></div>
-<div class="field"><label>预期短路电流 Ik（kA，可选）</label><input id="qIsc" type="number" min="0" step=".1" placeholder="现场计算或测量值"></div>
-<div class="field"><label>断路器额定极限短路分断能力 Icu（kA，可选）</label><input id="qIcu" type="number" min="0" step=".1" placeholder="查断路器铭牌 / 样本"></div>
+
 </div>
 <div class="actions"><button class="btn" onclick="recommendCable()">推荐截面并校核</button></div>
 <div id="qOut" class="result"></div>
-<div class="note">估算假设：使用本工具载流量页的 PVC 70℃参考数据及相同修正系数；电压降按导体电阻分量计算，忽略电抗、谐波、三相不平衡及接头电阻。该结果用于初步筛选，不是设计结论。实际项目必须按具体电缆型号、厂家载流量表、线路敷设细节、保护器件配合及适用标准复核；长距离、大电流、启动冲击或重要负荷应进行完整阻抗和短路热稳定校核。铝缆需使用匹配端子及规范压接工艺。</div>
+<div class="note">估算假设：使用本工具载流量页的 PVC 70℃参考数据及相同修正系数；电压降按导体电阻分量计算，忽略电抗、谐波、三相不平衡及接头电阻。该结果用于初步筛选，不是设计结论。实际项目必须按具体电缆型号、厂家载流量表、线路敷设细节及适用标准复核；长距离、大电流、启动冲击或重要负荷应进行完整电压降和短路热稳定校核。铝缆需使用匹配端子及规范压接工艺。</div>
 </div></section>
 <section id="fault" class="view hidden"><div class="panel"><h2>常见故障排查</h2><p class="desc">先确保人身安全；高压操作必须按工作票、操作票及规程执行。</p><div class="field"><label>选择故障现象</label><select id="faultType" onchange="fault()"><option value="hot">断路器 / 端子发热</option><option value="trip">低压断路器频繁跳闸</option><option value="phase">UPS 报相序错误</option><option value="neutral">零线电流异常</option><option value="temp">变压器温度偏高</option></select></div><div id="fOut" class="result" style="display:block"></div></div></section>
 <section id="check" class="view hidden"><div class="panel"><h2>配电 / 光伏工程验收清单</h2><p class="desc">勾选现场已核查项目；刷新页面后勾选状态会重置。</p><div id="checks"></div><div class="actions"><button class="btn" onclick="countChecks()">统计完成项</button><button class="btn" onclick="clearChecks()">清空</button></div><div id="ckOut" class="result"></div></div></section>
@@ -135,71 +131,39 @@ let extra=load!==''&&Number(load)>=0?'<p>输入负载电流：'+Number(load).toF
 out('aOut','<strong>'+result.toFixed(1)+' A</strong><small>修正后估算载流量；基准参考值 '+base+' A</small><p>温度修正系数：'+tempFactor.toFixed(2)+'；载流芯数系数：'+coreFactor.toFixed(2)+'</p><p>敷设修正系数：'+installFactor.toFixed(2)+'；成束修正系数：'+groupFactor.toFixed(2)+'</p>'+extra+'<small>基准为 PVC 70℃、30℃环境、3 根载流导体的近似参考值；不同厂家与敷设条件会有差异。</small>');
 }
 function recommendCable(){
-const sections=[1.5,2.5,4,6,10,16,25,35,50,70,95,120,150,185,240,300,400];
-const cu=[14,19,25,32,43,57,75,92,110,140,170,192,219,248,291,334,387];
-const al=[0,15,20,25,34,45,59,73,87,110,134,151,173,196,230,264,306];
-const phase=n('qPhase'),u=n('qVoltage'),i=n('qCurrent'),l=n('qLength'),pf=n('qPF'),temp=n('qTemp'),ambient=n('qAmbient'),cores=n('qCores'),install=n('qInstall'),group=n('qGroup'),limit=n('qDrop');
-const breaker=document.getElementById('qBreakerType').value,ir=n('qMccbIr'),i2raw=document.getElementById('qI2ratio').value.trim(),i2ratio=i2raw===''?null:Number(i2raw);
-const isRaw=document.getElementById('qIsc').value.trim(),icuRaw=document.getElementById('qIcu').value.trim(),ik=isRaw===''?null:Number(isRaw),icu=icuRaw===''?null:Number(icuRaw);
-if(!(u>0&&i>0&&l>0&&pf>0&&pf<=1&&Number.isFinite(temp)&&limit>0&&limit<=15))return out('qOut','输入有误，请检查电压、电流、长度、功率因数、温度及压降限值。');
-if((phase===3&&cores!==3)||(phase===1&&cores!==2))return out('qOut','供电方式与载流导体根数不匹配，请选择三相3根或单相2根。');
-if(breaker==='mccb'&&!(ir>=i))return out('qOut','MCCB 长延时整定电流 Ir 必须不小于负载电流 Ib；请核对设计负荷与整定值。');
-if(i2ratio!==null&&!(i2ratio>=1&&i2ratio<=2))return out('qOut','MCCB 的 I2/Ir 系数应在 1～2 之间，并以制造商资料为准。');
-if((ik===null)!==(icu===null)|| (ik!==null&&(!(ik>=0&&icu>0))))return out('qOut','短路校核需同时填写有效的预期短路电流 Ik 和断路器 Icu。');
-const tempFactor=({25:1.06,30:1,35:.94,40:.87,45:.79,50:.71})[ambient]||1;
-const coreFactor=cores===2?1.15:1;
-const rhoMap={cu:.0175,al:.0282};
-const mcbRatings=[6,10,16,20,25,32,40,50,63,80,100,125];
-const mccbFrames=[100,125,160,200,250,315,400,500,630,800,1000,1250,1600];
-function breakerCheck(iz){
-if(breaker==='mcb'){
-const rated=mcbRatings.find(v=>v>=i);
-if(!rated)return {ok:false,desc:'负载电流超出本工具列出的 MCB 额定值范围（最大125A）'};
-const ok=rated<=iz,shortOK=ik===null||icu>=ik;
-return {ok:ok&&shortOK,desc:'MCB 额定电流 In='+rated+' A；In≤Iz：'+(ok?'通过':'不通过')+'；按 IEC 60898 常见参考，I2≈1.45In，I2≤1.45Iz：'+(ok?'通过':'不通过')+(ik===null?'':'；短路分断 Ik≤Icu：'+(shortOK?'通过':'不通过'))};
-}
-const frame=mccbFrames.find(v=>v>=ir);
-if(!frame)return {ok:false,desc:'Ir 超出本工具列出的 MCCB 壳架电流范围（最大1600A）'};
-const settingOK=ir>=i&&ir<=iz&&ir<=frame;
-const pieces=['MCCB 壳架电流建议不小于 '+frame+' A；长延时整定 Ir='+ir+' A','Ib≤Ir≤Iz：'+(settingOK?'通过':'不通过')];
-let i2ok=null;
-if(i2ratio!==null){i2ok=ir*i2ratio<=1.45*iz;pieces.push('按输入制造商系数估算 I2='+(ir*i2ratio).toFixed(1)+' A；I2≤1.45Iz：'+(i2ok?'通过':'不通过'));}
-else pieces.push('未填写制造商 I2/Ir 参数，I2 配合未判定');
-const shortOK=ik===null||icu>=ik;
-if(ik!==null)pieces.push('短路分断 Ik≤Icu：'+(shortOK?'通过':'不通过'));
-return {ok:settingOK&&(i2ok!==false)&&shortOK,desc:pieces.join('；')};
-}
-function calc(mat,baseArray){
-const rho20=rhoMap[mat],alpha=mat==='cu'?.00393:.00403;
-const candidates=sections.map((s,k)=>{
-const base=baseArray[k],amp=base*tempFactor*coreFactor*install*group;
-if(!base)return null;
-const rho=rho20*(1+alpha*(temp-20));
-const resistance=rho*l/s;
-const drop=(phase===3?Math.sqrt(3):2)*i*resistance*pf;
-const percent=drop/u*100;
-const protection=breakerCheck(amp);
-return {s,amp,drop,percent,okAmp:amp>=i,okDrop:percent<=limit,protection,ok:amp>=i&&percent<=limit&&protection.ok};
-}).filter(Boolean);
-return {chosen:candidates.find(x=>x.ok),candidates};
-}
-const copper=calc('cu',cu),aluminum=calc('al',al);
-function block(label,r){
-if(!r.chosen){
-const last=r.candidates[r.candidates.length-1];
-return '<div style="margin-top:12px"><b>'+label+'：</b><span style="color:#a33">当前参考规格内未找到同时通过的组合</span><p>最大参考规格 '+last.s+' mm²：载流量 '+last.amp.toFixed(1)+' A，压降 '+last.percent.toFixed(2)+'%；保护校核：'+last.protection.desc+'</p></div>';
-}
-const x=r.chosen;
-let sc='';
-if(ik!==null)sc='<p>短路分断能力：Ik='+ik.toFixed(2)+' kA，Icu='+icu.toFixed(2)+' kA；Ik≤Icu：'+(icu>=ik?'通过':'不通过')+'</p>';
-return '<div style="margin-top:12px"><b>'+label+'推荐：</b><strong style="font-size:20px">'+x.s+' mm²</strong><p>估算修正载流量 Iz：'+x.amp.toFixed(1)+' A；负载电流 Ib：'+i.toFixed(1)+' A</p><p>电压降：'+x.drop.toFixed(2)+' V（'+x.percent.toFixed(2)+'%，限值 '+limit.toFixed(1)+'%）：通过</p><p>断路器建议：'+x.protection.desc+'</p>'+sc+'</div>';
-}
-let html='<small>计算条件：'+(phase===3?'三相':'单相')+'，'+u+' V，Ib='+i+' A，单程 '+l+' m，cosφ='+pf+'；导体温度 '+temp+'℃。</small>'+block('铜芯电缆',copper)+block('铝芯电缆',aluminum);
-html+='<p style="margin-top:14px"><b>基本配合原则：</b>过载保护通常需满足 Ib≤In（或 Ir）≤Iz，并按保护器件标准和制造商参数核对 I2≤1.45Iz。MCB 这里采用常见 IEC 60898 参考值；MCCB 必须结合脱扣器曲线、整定范围和制造商 I2 参数。</p>';
-if(ik===null)html+='<p><b>短路分断能力：</b>未输入预期短路电流及 Icu，未进行分断能力校核。</p>';
-else if(icu<ik)html+='<p style="color:#a33"><b>警告：</b>输入的 Icu 小于 Ik，该断路器分断能力不满足所填短路电流水平，不能据此选用。</p>';
-html+='<small>注意：本页不自动完成短路保护灵敏度、瞬时脱扣阈值、导体短路热稳定、上下级选择性、接地故障保护及电动机启动校核。断路器壳架电流不等于脱扣整定电流；必须核对实际产品铭牌、曲线和厂家技术资料。</small>';
-out('qOut',html);
+ const sections=[1.5,2.5,4,6,10,16,25,35,50,70,95,120,150,185,240,300,400];
+ const cu=[14,19,25,32,43,57,75,92,110,140,170,192,219,248,291,334,387];
+ const al=[0,15,20,25,34,45,59,73,87,110,134,151,173,196,230,264,306];
+ const phase=n('qPhase'),u=n('qVoltage'),i=n('qCurrent'),l=n('qLength'),pf=n('qPF'),temp=n('qTemp'),ambient=n('qAmbient'),cores=n('qCores'),install=n('qInstall'),group=n('qGroup'),limit=n('qDrop');
+ if(!(u>0&&i>0&&l>0&&pf>0&&pf<=1&&Number.isFinite(temp)&&limit>0&&limit<=15))return out('qOut','输入有误，请检查电压、电流、长度、功率因数、温度及压降限值。');
+ if((phase===3&&cores!==3)||(phase===1&&cores!==2))return out('qOut','供电方式与载流导体根数不匹配，请选择三相3根或单相2根。');
+ const tempFactor=({25:1.06,30:1,35:.94,40:.87,45:.79,50:.71})[ambient]||1;
+ const coreFactor=cores===2?1.15:1;
+ const rhoMap={cu:.0175,al:.0282};
+ function calc(mat,baseArray){
+  const rho20=rhoMap[mat],alpha=mat==='cu'?.00393:.00403;
+  const candidates=sections.map((s,k)=>{
+   const base=baseArray[k],amp=base*tempFactor*coreFactor*install*group;
+   if(!base)return null;
+   const rho=rho20*(1+alpha*(temp-20));
+   const resistance=rho*l/s;
+   const drop=(phase===3?Math.sqrt(3):2)*i*resistance*pf;
+   const percent=drop/u*100;
+   return {s,amp,drop,percent,ok:amp>=i&&percent<=limit};
+  }).filter(Boolean);
+  return {chosen:candidates.find(x=>x.ok),candidates};
+ }
+ const copper=calc('cu',cu),aluminum=calc('al',al);
+ function block(label,r){
+  if(!r.chosen){
+   const last=r.candidates[r.candidates.length-1];
+   return '<div style="margin-top:12px"><b>'+label+'：</b><span style="color:#a33">当前参考规格内未找到同时满足载流量和压降要求的截面</span><p>最大参考规格 '+last.s+' mm²：载流量 '+last.amp.toFixed(1)+' A，压降 '+last.percent.toFixed(2)+'%；请增大截面或重新核实敷设条件。</p></div>';
+  }
+  const x=r.chosen;
+  return '<div style="margin-top:12px"><b>'+label+'推荐：</b><strong style="font-size:20px">'+x.s+' mm²</strong><p>估算修正载流量 Iz：'+x.amp.toFixed(1)+' A；负载电流 Ib：'+i.toFixed(1)+' A</p><p>电压降：'+x.drop.toFixed(2)+' V（'+x.percent.toFixed(2)+'%，限值 '+limit.toFixed(1)+'%）：通过</p><p>载流量校核：通过；电压降校核：通过</p></div>';
+ }
+ const html='<small>计算条件：'+(phase===3?'三相':'单相')+'，'+u+' V，负载电流 '+i+' A，单程 '+l+' m，cosφ='+pf+'；导体温度 '+temp+'℃。</small>'+block('铜芯电缆',copper)+block('铝芯电缆',aluminum)+'<p style="margin-top:14px"><b>选型说明：</b>本工具仅按估算载流量和电压降筛选电缆截面，不包含断路器选型、保护整定及短路保护校核。</p>';
+ out('qOut',html);
 }
 
 function cable(){let l=n('cL'),i=n('cI'),s=n('cS'),u=n('cU'),pf=n('cPF'),rho=n('cMat');if(!(l>0&&i>=0&&s>0&&u>0&&pf>0&&pf<=1))return out('cOut','输入有误。');let d=Math.sqrt(3)*i*rho*l/s*pf;out('cOut','<strong>'+d.toFixed(2)+' V（'+(d/u*100).toFixed(2)+'%）</strong><small>按导体电阻近似估算，未计线路电抗及运行温升。</small>')}
