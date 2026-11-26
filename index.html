@@ -155,8 +155,8 @@ function breakerCheck(iz){
 if(breaker==='mcb'){
 const rated=mcbRatings.find(v=>v>=i);
 if(!rated)return {ok:false,desc:'负载电流超出本工具列出的 MCB 额定值范围（最大125A）'};
-const ok=rated<=iz;
-return {ok,desc:'MCB 额定电流 In='+rated+' A；In≤Iz：'+(ok?'通过':'不通过')+'；按 IEC 60898 常见参考，I2≈1.45In，I2≤1.45Iz：'+(ok?'通过':'不通过')};
+const ok=rated<=iz,shortOK=ik===null||icu>=ik;
+return {ok:ok&&shortOK,desc:'MCB 额定电流 In='+rated+' A；In≤Iz：'+(ok?'通过':'不通过')+'；按 IEC 60898 常见参考，I2≈1.45In，I2≤1.45Iz：'+(ok?'通过':'不通过')+(ik===null?'':'；短路分断 Ik≤Icu：'+(shortOK?'通过':'不通过'))};
 }
 const frame=mccbFrames.find(v=>v>=ir);
 if(!frame)return {ok:false,desc:'Ir 超出本工具列出的 MCCB 壳架电流范围（最大1600A）'};
@@ -165,7 +165,9 @@ const pieces=['MCCB 壳架电流建议不小于 '+frame+' A；长延时整定 Ir
 let i2ok=null;
 if(i2ratio!==null){i2ok=ir*i2ratio<=1.45*iz;pieces.push('按输入制造商系数估算 I2='+(ir*i2ratio).toFixed(1)+' A；I2≤1.45Iz：'+(i2ok?'通过':'不通过'));}
 else pieces.push('未填写制造商 I2/Ir 参数，I2 配合未判定');
-return {ok:settingOK&&(i2ok!==false),desc:pieces.join('；')};
+const shortOK=ik===null||icu>=ik;
+if(ik!==null)pieces.push('短路分断 Ik≤Icu：'+(shortOK?'通过':'不通过'));
+return {ok:settingOK&&(i2ok!==false)&&shortOK,desc:pieces.join('；')};
 }
 function calc(mat,baseArray){
 const rho20=rhoMap[mat],alpha=mat==='cu'?.00393:.00403;
