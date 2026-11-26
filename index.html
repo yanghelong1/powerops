@@ -18,7 +18,7 @@ h1{font-size:22px;margin:0}.sub{color:#c8d9e7;font-size:13px}main{max-width:1050
 <body>
 <header><h1>⚡ 电力运维助手 <span style="font-size:13px;color:#c8d9e7">PowerOps</span></h1><div class="sub">现场计算 · 故障排查 · 工程验收 · 随身工具箱</div></header>
 <main>
-<nav class="tabs"><button class="tab active" data-tab="power">电气计算</button><button class="tab" data-tab="transformer">变压器</button><button class="tab" data-tab="cable">电缆压降</button><button class="tab" data-tab="resistance">电缆电阻</button><button class="tab" data-tab="ampacity">载流量</button><button class="tab" data-tab="fault">故障排查</button><button class="tab" data-tab="check">工程验收</button><button class="tab" data-tab="records">现场记录</button></nav>
+<nav class="tabs"><button class="tab active" data-tab="power">电气计算</button><button class="tab" data-tab="transformer">变压器</button><button class="tab" data-tab="cable">电缆压降</button><button class="tab" data-tab="resistance">电缆电阻</button><button class="tab" data-tab="ampacity">载流量</button><button class="tab" data-tab="recommend">截面推荐</button><button class="tab" data-tab="fault">故障排查</button><button class="tab" data-tab="check">工程验收</button><button class="tab" data-tab="records">现场记录</button></nav>
 <section id="power" class="view"><div class="panel"><h2>三相功率 / 电流计算</h2><p class="desc">按对称三相交流系统估算，效率按设备铭牌或实测值输入。</p><div class="grid">
 <div class="field"><label>线电压 U（V）</label><input id="pU" type="number" value="380"></div><div class="field"><label>有功功率 P（kW）</label><input id="pP" type="number" value="30"></div><div class="field"><label>功率因数 cosφ</label><input id="pPF" type="number" value=".85" step=".01"></div><div class="field"><label>效率 η（%）</label><input id="pEff" type="number" value="95"></div></div><div class="actions"><button class="btn" onclick="power()">计算电流</button></div><div id="pOut" class="result"></div></div></section>
 <section id="transformer" class="view hidden"><div class="panel"><h2>变压器额定电流与负载率</h2><p class="desc">适用于三相变压器容量及低压侧电流快速估算。</p><div class="grid"><div class="field"><label>容量（kVA）</label><input id="tKva" type="number" value="630"></div><div class="field"><label>低压线电压（V）</label><input id="tV" type="number" value="400"></div><div class="field"><label>实测线电流（A）</label><input id="tA" type="number" value="500"></div></div><div class="actions"><button class="btn" onclick="trans()">计算</button></div><div id="tOut" class="result"></div><div class="note">实际允许负载还需结合铭牌、环境温度、冷却方式、谐波及运行规程判断。</div></div></section>
@@ -53,6 +53,26 @@ h1{font-size:22px;margin:0}.sub{color:#c8d9e7;font-size:13px}main{max-width:1050
 <div class="actions"><button class="btn" onclick="ampacity()">计算载流量</button></div>
 <div id="aOut" class="result"></div>
 <div class="note">重要说明：这是现场初步估算工具，不是国家标准载流量表。实际载流量受电缆型号（PVC/XLPE）、芯数与导体结构、敷设方式、土壤热阻、埋深、环境温度、回路间距、谐波及端子温度等级等影响。选型、保护配合和验收必须按电缆厂家数据及现行 GB/T 16895 等适用标准复核；铝导体还须匹配铝用端子并按工艺施工。不得仅凭本计算值确定断路器整定。</div>
+</div></section>
+<section id="recommend" class="view hidden"><div class="panel">
+<h2>电缆截面自动推荐与校核</h2>
+<p class="desc">输入负载电流、线路长度及敷设条件，分别筛选铜缆或铝缆，找出同时满足估算载流量和电压降限值的最小截面。</p>
+<div class="grid">
+<div class="field"><label>供电方式</label><select id="qPhase"><option value="3">三相三线 / 三相四线（380/400V）</option><option value="1">单相两线（220/230V）</option></select></div>
+<div class="field"><label>系统电压（V）</label><input id="qVoltage" type="number" min="1" value="380"></div>
+<div class="field"><label>负载电流（A）</label><input id="qCurrent" type="number" min="0.1" step="any" value="60"></div>
+<div class="field"><label>线路单程长度（m）</label><input id="qLength" type="number" min="1" step="any" value="100"></div>
+<div class="field"><label>功率因数 cosφ</label><input id="qPF" type="number" min="0.1" max="1" step=".01" value=".85"></div>
+<div class="field"><label>导体运行温度（℃）</label><input id="qTemp" type="number" value="70"></div>
+<div class="field"><label>敷设方式</label><select id="qInstall"><option value="1">穿管 / 封闭线槽（基准参考）</option><option value="1.18">空气中敷设 / 通风桥架（估算修正）</option></select></div>
+<div class="field"><label>载流导体根数</label><select id="qCores"><option value="3">3 根（三相）</option><option value="2">2 根（单相）</option></select></div>
+<div class="field"><label>环境温度（℃）</label><select id="qAmbient"><option>25</option><option selected>30</option><option>35</option><option>40</option><option>45</option><option>50</option></select></div>
+<div class="field"><label>成束 / 并排敷设情况</label><select id="qGroup"><option value="1">单回路、间距充足（1.00）</option><option value=".8">2～3 回路成束（0.80）</option><option value=".7">4～6 回路成束（0.70）</option><option value=".65">7～9 回路成束（0.65）</option><option value=".6">密集成束（0.60）</option></select></div>
+<div class="field"><label>允许电压降（%）</label><input id="qDrop" type="number" min=".1" max="15" step=".1" value="5"></div>
+</div>
+<div class="actions"><button class="btn" onclick="recommendCable()">推荐截面并校核</button></div>
+<div id="qOut" class="result"></div>
+<div class="note">估算假设：使用本工具载流量页的 PVC 70℃参考数据及相同修正系数；电压降按导体电阻分量计算，忽略电抗、谐波、三相不平衡及接头电阻。该结果用于初步筛选，不是设计结论。实际项目必须按具体电缆型号、厂家载流量表、线路敷设细节、保护器件配合及适用标准复核；长距离、大电流、启动冲击或重要负荷应进行完整阻抗和短路热稳定校核。铝缆需使用匹配端子及规范压接工艺。</div>
 </div></section>
 <section id="fault" class="view hidden"><div class="panel"><h2>常见故障排查</h2><p class="desc">先确保人身安全；高压操作必须按工作票、操作票及规程执行。</p><div class="field"><label>选择故障现象</label><select id="faultType" onchange="fault()"><option value="hot">断路器 / 端子发热</option><option value="trip">低压断路器频繁跳闸</option><option value="phase">UPS 报相序错误</option><option value="neutral">零线电流异常</option><option value="temp">变压器温度偏高</option></select></div><div id="fOut" class="result" style="display:block"></div></div></section>
 <section id="check" class="view hidden"><div class="panel"><h2>配电 / 光伏工程验收清单</h2><p class="desc">勾选现场已核查项目；刷新页面后勾选状态会重置。</p><div id="checks"></div><div class="actions"><button class="btn" onclick="countChecks()">统计完成项</button><button class="btn" onclick="clearChecks()">清空</button></div><div id="ckOut" class="result"></div></div></section>
@@ -108,6 +128,40 @@ const result=base*tempFactor*coreFactor*installFactor*groupFactor;
 const load=document.getElementById('aLoad').value.trim();
 let extra=load!==''&&Number(load)>=0?'<p>输入负载电流：'+Number(load).toFixed(1)+' A；估算负载率：'+(Number(load)/result*100).toFixed(1)+'%</p>':'';
 out('aOut','<strong>'+result.toFixed(1)+' A</strong><small>修正后估算载流量；基准参考值 '+base+' A</small><p>温度修正系数：'+tempFactor.toFixed(2)+'；载流芯数系数：'+coreFactor.toFixed(2)+'</p><p>敷设修正系数：'+installFactor.toFixed(2)+'；成束修正系数：'+groupFactor.toFixed(2)+'</p>'+extra+'<small>基准为 PVC 70℃、30℃环境、3 根载流导体的近似参考值；不同厂家与敷设条件会有差异。</small>');
+}
+function recommendCable(){
+const sections=[1.5,2.5,4,6,10,16,25,35,50,70,95,120,150,185,240,300,400];
+const cu=[14,19,25,32,43,57,75,92,110,140,170,192,219,248,291,334,387];
+const al=[0,15,20,25,34,45,59,73,87,110,134,151,173,196,230,264,306];
+const phase=n('qPhase'),u=n('qVoltage'),i=n('qCurrent'),l=n('qLength'),pf=n('qPF'),temp=n('qTemp'),ambient=n('qAmbient'),cores=n('qCores'),install=n('qInstall'),group=n('qGroup'),limit=n('qDrop');
+if(!(u>0&&i>0&&l>0&&pf>0&&pf<=1&&Number.isFinite(temp)&&limit>0&&limit<=15))return out('qOut','输入有误，请检查电压、电流、长度、功率因数、温度及压降限值。');
+if((phase===3&&cores!==3)||(phase===1&&cores!==2))return out('qOut','供电方式与载流导体根数不匹配，请选择三相3根或单相2根。');
+const tempFactor=({25:1.06,30:1,35:.94,40:.87,45:.79,50:.71})[ambient]||1;
+const coreFactor=cores===2?1.15:1;
+const rhoMap={cu:.0175,al:.0282};
+function calc(mat,baseArray){
+const candidates=sections.map((s,k)=>{
+const base=baseArray[k],amp=base*tempFactor*coreFactor*install*group;
+if(!base)return null;
+const rho=rhoMap[mat]*(1+.00393*(temp-20));
+const resistance=rho*l/s;
+const drop=(phase===3?Math.sqrt(3):2)*i*resistance*pf;
+const percent=drop/u*100;
+return {s,amp,drop,percent,ok:amp>=i&&percent<=limit};
+}).filter(Boolean);
+return {chosen:candidates.find(x=>x.ok),candidates};
+}
+const copper=calc('cu',cu),aluminum=calc('al',al);
+function block(label,r){
+if(!r.chosen){
+const last=r.candidates[r.candidates.length-1];
+return '<div style="margin-top:12px"><b>'+label+'：</b><span style="color:#a33">在当前参考规格范围内无合格截面</span><p>最大参考规格 '+last.s+' mm²：载流量 '+last.amp.toFixed(1)+' A，压降 '+last.percent.toFixed(2)+'%。建议优化敷设条件、采用经设计校核的并联方案或进行专项设计。</p></div>';
+}
+const x=r.chosen;
+return '<div style="margin-top:12px"><b>'+label+'推荐：</b><strong style="font-size:20px">'+x.s+' mm²</strong><p>估算允许载流量：'+x.amp.toFixed(1)+' A；负载电流：'+i.toFixed(1)+' A</p><p>电压降：'+x.drop.toFixed(2)+' V（'+x.percent.toFixed(2)+'%，限值 '+limit.toFixed(1)+'%）</p><p>载流量校核：通过；电压降校核：通过</p></div>';
+}
+const html='<small>计算条件：'+(phase===3?'三相':'单相')+'，'+u+' V，'+i+' A，单程 '+l+' m，cosφ='+pf+'；导体温度 '+temp+'℃。</small>'+block('铜芯电缆',copper)+block('铝芯电缆',aluminum)+'<p style="margin-top:14px"><b>筛选说明：</b>按截面从小到大查找同时满足载流量和压降限值的首个规格。</p><small>两种材质均满足时，请结合采购成本、端子兼容性、机械强度及施工条件决定。</small>';
+out('qOut',html);
 }
 function cable(){let l=n('cL'),i=n('cI'),s=n('cS'),u=n('cU'),pf=n('cPF'),rho=n('cMat');if(!(l>0&&i>=0&&s>0&&u>0&&pf>0&&pf<=1))return out('cOut','输入有误。');let d=Math.sqrt(3)*i*rho*l/s*pf;out('cOut','<strong>'+d.toFixed(2)+' V（'+(d/u*100).toFixed(2)+'%）</strong><small>按导体电阻近似估算，未计线路电抗及运行温升。</small>')}
 const faults={hot:'可能原因：接触电阻增大、螺栓松动、压接不良、负荷过大或触点老化。建议：核对负荷和三相平衡；热成像比较同类点温差；停电、验电并落实安全措施后检查连接。禁止带负荷紧固端子。',trip:'记录跳闸时间、负荷及脱扣指示；核查过载、短路、接地、绝缘下降或启动冲击。不得反复强行合闸或擅自调大保护整定值。',phase:'核对UPS输入制式和相序要求；由合格人员使用相序表核实输入端，并逐点核对端子、标识和接线图。不能只凭黄绿红颜色判断相序。',neutral:'检查三相负荷、非线性负载及三次谐波；核实N与PE是否在规定位置分开，排查下游重复连接。严禁将N与PE随意短接。',temp:'核对铭牌温升限值、测点、负荷率、环境温度和冷却条件；检查风道积尘、风机、三相不平衡及接头局部过热。不同测温位置不可直接比较。'};
