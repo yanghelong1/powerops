@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#10243a"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="电力运维助手"><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#10243a"><title>电力运维助手 PowerOps</title>
 <style>
 :root{--bg:#f3f6fa;--panel:#fff;--ink:#172536;--muted:#68798b;--line:#e3eaf1;--blue:#1769aa;--navy:#10243a}
@@ -16,7 +16,7 @@ h1{font-size:22px;margin:0}.sub{color:#c8d9e7;font-size:13px}main{max-width:1050
 @media(max-width:650px){header{padding:18px}.grid{grid-template-columns:1fr}.panel{padding:16px}}
 </style></head>
 <body>
-<header><h1>⚡ 电力运维助手 <span style="font-size:13px;color:#c8d9e7">PowerOps</span></h1><div class="sub">现场计算 · 故障排查 · 工程验收 · 随身工具箱</div></header>
+<header><div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div><h1>⚡ 电力运维助手 <span style="font-size:13px;color:#c8d9e7">PowerOps</span></h1><div class="sub">现场计算 · 故障排查 · 工程验收 · 随身工具箱</div></div><button id="installApp" class="btn" style="background:#fff;color:#174b70;white-space:nowrap;padding:9px 12px">安装到手机</button></div></header>
 <main>
 <nav class="tabs"><button class="tab active" data-tab="power">电气计算</button><button class="tab" data-tab="transformer">变压器</button><button class="tab" data-tab="cable">电缆压降</button><button class="tab" data-tab="resistance">电缆电阻</button><button class="tab" data-tab="ampacity">载流量</button><button class="tab" data-tab="recommend">截面推荐</button><button class="tab" data-tab="fault">故障排查</button><button class="tab" data-tab="check">工程验收</button><button class="tab" data-tab="records">现场记录</button></nav>
 <section id="power" class="view"><div class="panel"><h2>三相功率 / 电流计算</h2><p class="desc">按对称三相交流系统估算，效率按设备铭牌或实测值输入。</p><div class="grid">
@@ -240,4 +240,18 @@ function printRecordData(a,title){let rows=a.map((r,i)=>'<article><h2>记录 '+(
 
 setRecordDate();renderRecords();
 power();trans();cable();fault();
+
+// PWA：支持安卓安装、iPhone 添加到主屏幕，以及离线打开已缓存页面
+let deferredInstallPrompt=null;
+const installButton=document.getElementById('installApp');
+window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstallPrompt=event;installButton.style.display='inline-block'});
+window.addEventListener('appinstalled',()=>{installButton.textContent='已安装';installButton.disabled=true;deferredInstallPrompt=null});
+installButton.addEventListener('click',async()=>{
+ if(deferredInstallPrompt){deferredInstallPrompt.prompt();const choice=await deferredInstallPrompt.userChoice;if(choice.outcome==='accepted')installButton.textContent='正在安装';deferredInstallPrompt=null;return}
+ const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+ if(isIOS){alert('在 iPhone 上安装：请先用 Safari 打开本网站，点击底部“分享”按钮，再选择“添加到主屏幕”，最后点击“添加”。')}
+ else if(window.matchMedia('(display-mode: standalone)').matches){alert('电力运维助手已经安装在手机上。')}
+ else{alert('如浏览器菜单中提供“安装应用”或“添加到主屏幕”，请点击该选项完成安装。建议使用 Safari（iPhone）或 Chrome（安卓）。')}
+});
+if('serviceWorker' in navigator && location.protocol==='https:'){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(err=>console.warn('离线缓存注册失败：',err)))}
 </script></body></html>
