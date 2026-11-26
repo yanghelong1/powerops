@@ -29,7 +29,7 @@ h1{font-size:22px;margin:0}.sub{color:#c8d9e7;font-size:13px}main{max-width:1050
 <p class="desc">先根据电缆参数计算导体电阻，再结合实际运行电流估算线路有功损耗、每天/月电量损耗及电费。</p>
 <div class="grid">
 <div class="field"><label>导体材质</label><select id="rMat" onchange="resistance()"><option value="0.0175,0.00393">铜（Cu）</option><option value="0.0282,0.00403">铝（Al）</option></select></div>
-<div class="field"><label>导体截面（mm²）</label><select id="rSection"><option>1.5</option><option>2.5</option><option>4</option><option>6</option><option>10</option><option>16</option><option>25</option><option>35</option><option>50</option><option>70</option><option>95</option><option>120</option><option>150</option><option>185</option><option>240</option><option>300</option><option>400</option></select></div>
+<div class="field"><label>导体截面（mm²）</label><select id="rSection"><option>1.5</option><option>2.5</option><option>4</option><option>6</option><option>10</option><option>16</option><option selected>25</option><option>35</option><option>50</option><option>70</option><option>95</option><option>120</option><option>150</option><option>185</option><option>240</option><option>300</option><option>400</option></select></div>
 <div class="field"><label>线路单程长度（m）</label><input id="rLength" type="number" min="0" step="any" value="100"></div>
 <div class="field"><label>并联导体根数（每相）</label><input id="rParallel" type="number" min="1" step="1" value="1"></div>
 <div class="field"><label>导体工作温度（℃）</label><input id="rTemperature" type="number" step="any" value="20"></div>
@@ -47,7 +47,7 @@ h1{font-size:22px;margin:0}.sub{color:#c8d9e7;font-size:13px}main{max-width:1050
 <div id="rOut" class="result"></div>
 <div id="rLossOut" class="result"></div>
 <div class="note">电阻按20℃参考电阻率及温度系数估算，结果为导体直流电阻，不含接头、端子和接触电阻。线损按 I²R 计算，假设各相导体长度、截面、材质和并联根数一致；单相按火线与零线电阻相等估算。三相不平衡模式需输入实测零线电流。未计交流电抗、集肤效应、邻近效应及谐波附加损耗；月电费按输入电价和运行时间估算。工程核算应结合实测电流、导体温度及实际线路参数复核。</div>
-</div></section>>
+</div></section>
 <section id="ampacity" class="view hidden"><div class="panel">
 <h2>铜 / 铝电缆载流量估算</h2>
 <p class="desc">覆盖常用导体截面 1.5～400 mm²。按 PVC 70℃绝缘、空气环境 30℃、3 根载流导体的参考基准值估算，并可按环境温度、载流芯数和成束情况修正。</p>
