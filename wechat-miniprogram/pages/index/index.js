@@ -8,6 +8,7 @@ Page({
   mode:'section',phaseOptions:['三相三线 / 三相四线','单相两线'],phaseIndex:0,
   materialOptions:['铜芯（Cu）','铝芯（Al）'],materialIndex:0,
   installOptions:['穿管 / 封闭线槽（基准）','空气中敷设 / 通风桥架（估算）'],installIndex:0,
+  ambientOptions:['25','30','35','40','45','50'],ambientIndex:1,
   sectionOptions:SECTIONS.map(String),sectionIndex:6,
   lossModeOptions:['单相两线制','三相平衡负载','三相四线制不平衡负载'],lossModeIndex:0,
   voltage:'380',current:'60',length:'100',pf:'0.85',temperature:'70',dropLimit:'5',parallel:'1',
@@ -20,6 +21,7 @@ Page({
  onPhaseChange(e){this.setData({phaseIndex:Number(e.detail.value),voltage:Number(e.detail.value)===0?'380':'220'})},
  onMaterialChange(e){this.setData({materialIndex:Number(e.detail.value)})},
  onInstallChange(e){this.setData({installIndex:Number(e.detail.value)})},
+ onAmbientChange(e){this.setData({ambientIndex:Number(e.detail.value)})},
  onSectionChange(e){this.setData({sectionIndex:Number(e.detail.value)})},
  onLossModeChange(e){this.setData({lossModeIndex:Number(e.detail.value)})},
  num(key){return Number(this.data[key])},
@@ -30,8 +32,9 @@ Page({
   const d=this.data,keys=['voltage','current','length','pf','temperature','dropLimit'];
   if(!this.validPositive(keys)||this.num('pf')>1||this.num('dropLimit')>15){wx.showToast({title:'请检查输入参数',icon:'none'});return}
   const phase=d.phaseIndex===0?3:1,cores=phase===3?3:2,idx=d.materialIndex,mat=MATERIAL[idx],base=idx===0?CU:AL;
-  const tempFactor=({25:1.06,30:1,35:.94,40:.87,45:.79,50:.71})[this.num('temperature')]||1;
-  const ambientFactor=1,installFactor=d.installIndex===0?1:1.18,coreFactor=cores===2?1.15:1;
+  const ambient=Number(d.ambientOptions[d.ambientIndex]);
+  const tempFactor=({25:1.06,30:1,35:.94,40:.87,45:.79,50:.71})[ambient]||1;
+  const installFactor=d.installIndex===0?1:1.18,coreFactor=cores===2?1.15:1;
   const rho=mat.rho*(1+mat.alpha*(this.num('temperature')-20));
   const candidates=SECTIONS.map((s,i)=>{
    const amp=base[i]*tempFactor*coreFactor*installFactor*ambientFactor;
