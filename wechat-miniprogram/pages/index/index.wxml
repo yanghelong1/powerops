@@ -1,0 +1,62 @@
+<view class="page">
+  <view class="hero">
+    <view class="hero-title">电工运维助手 <text style="font-size:24rpx;color:#c8d9e7">PowerOps</text></view>
+    <view class="hero-sub">电缆截面 · 电阻计算 · 线路损耗</view>
+  </view>
+  <view class="tabs">
+    <view class="tab {{mode==='section'?'active':''}}" data-mode="section" bindtap="switchMode">截面推荐</view>
+    <view class="tab {{mode==='resistance'?'active':''}}" data-mode="resistance" bindtap="switchMode">电缆电阻</view>
+    <view class="tab {{mode==='loss'?'active':''}}" data-mode="loss" bindtap="switchMode">线损功率</view>
+  </view>
+  <view class="card" wx:if="{{mode==='section'}}">
+    <view class="section-title">电缆截面推荐</view><view class="muted">根据负载电流、线路长度和敷设条件，筛选满足估算载流量与电压降要求的最小截面。</view>
+    <view class="field"><text class="field-label">供电方式</text><picker class="picker" range="{{phaseOptions}}" value="{{phaseIndex}}" bindchange="onPhaseChange">{{phaseOptions[phaseIndex]}}</picker></view>
+    <view class="field"><text class="field-label">导体材质</text><picker class="picker" range="{{materialOptions}}" value="{{materialIndex}}" bindchange="onMaterialChange">{{materialOptions[materialIndex]}}</picker></view>
+    <view class="field"><text class="field-label">系统电压（V）</text><input class="input" type="digit" value="{{voltage}}" data-key="voltage" bindinput="onInput"/></view>
+    <view class="field"><text class="field-label">负载电流（A）</text><input class="input" type="digit" value="{{current}}" data-key="current" bindinput="onInput"/></view>
+    <view class="field"><text class="field-label">线路单程长度（m）</text><input class="input" type="digit" value="{{length}}" data-key="length" bindinput="onInput"/></view>
+    <view class="field"><text class="field-label">功率因数 cosφ</text><input class="input" type="digit" value="{{pf}}" data-key="pf" bindinput="onInput"/></view>
+    <view class="field"><text class="field-label">导体工作温度（℃）</text><input class="input" type="digit" value="{{temperature}}" data-key="temperature" bindinput="onInput"/></view>
+    <view class="field"><text class="field-label">允许电压降（%）</text><input class="input" type="digit" value="{{dropLimit}}" data-key="dropLimit" bindinput="onInput"/></view>
+    <view class="field"><text class="field-label">敷设修正</text><picker class="picker" range="{{installOptions}}" value="{{installIndex}}" bindchange="onInstallChange">{{installOptions[installIndex]}}</picker></view>
+    <button class="primary" bindtap="calculateSection">推荐电缆截面</button>
+    <view class="result" wx:if="{{sectionResult}}">
+      <view class="result-main">{{sectionResult.title}}</view>
+      <view class="result-line" wx:for="{{sectionResult.lines}}" wx:key="*this">{{item}}</view>
+    </view>
+    <view class="warning">本结果仅用于初步估算，不替代电缆厂家载流量表、现行标准校核及设计审核。未完成短路热稳定、保护配合、电抗和谐波等完整校核。</view>
+  </view>
+  <view class="card" wx:elif="{{mode==='resistance' || mode==='loss'}}">
+    <view class="section-title">{{mode==='resistance'?'电缆电阻计算':'线路损耗功率计算'}}</view>
+    <view class="muted">按导体材质、截面、线路长度、并联根数和工作温度估算导体电阻。</view>
+    <view class="field"><text class="field-label">导体材质</text><picker class="picker" range="{{materialOptions}}" value="{{materialIndex}}" bindchange="onMaterialChange">{{materialOptions[materialIndex]}}</picker></view>
+    <view class="field"><text class="field-label">导体截面（mm²）</text><picker class="picker" range="{{sectionOptions}}" value="{{sectionIndex}}" bindchange="onSectionChange">{{sectionOptions[sectionIndex]}} mm²</picker></view>
+    <view class="field"><text class="field-label">线路单程长度（m）</text><input class="input" type="digit" value="{{length}}" data-key="length" bindinput="onInput"/></view>
+    <view class="field"><text class="field-label">并联导体根数（每相）</text><input class="input" type="number" value="{{parallel}}" data-key="parallel" bindinput="onInput"/></view>
+    <view class="field"><text class="field-label">导体工作温度（℃）</text><input class="input" type="digit" value="{{temperature}}" data-key="temperature" bindinput="onInput"/></view>
+    <view wx:if="{{mode==='loss'}}">
+      <view class="field"><text class="field-label">供电方式</text><picker class="picker" range="{{lossModeOptions}}" value="{{lossModeIndex}}" bindchange="onLossModeChange">{{lossModeOptions[lossModeIndex]}}</picker></view>
+      <view class="field"><text class="field-label">{{lossModeIndex===0?'单相运行电流（A）':'三相线电流（A）'}}</text><input class="input" type="digit" value="{{runCurrent}}" data-key="runCurrent" bindinput="onInput"/></view>
+      <view class="field" wx:if="{{lossModeIndex===2}}"><text class="field-label">A相电流（A）</text><input class="input" type="digit" value="{{ia}}" data-key="ia" bindinput="onInput"/></view>
+      <view class="field" wx:if="{{lossModeIndex===2}}"><text class="field-label">B相电流（A）</text><input class="input" type="digit" value="{{ib}}" data-key="ib" bindinput="onInput"/></view>
+      <view class="field" wx:if="{{lossModeIndex===2}}"><text class="field-label">C相电流（A）</text><input class="input" type="digit" value="{{ic}}" data-key="ic" bindinput="onInput"/></view>
+      <view class="field" wx:if="{{lossModeIndex===2}}"><text class="field-label">零线电流（A）</text><input class="input" type="digit" value="{{inCurrent}}" data-key="inCurrent" bindinput="onInput"/></view>
+      <view class="field"><text class="field-label">每天运行小时数（h）</text><input class="input" type="digit" value="{{hours}}" data-key="hours" bindinput="onInput"/></view>
+      <view class="field"><text class="field-label">每月运行天数（天）</text><input class="input" type="digit" value="{{days}}" data-key="days" bindinput="onInput"/></view>
+      <view class="field"><text class="field-label">电价（元/kWh）</text><input class="input" type="digit" value="{{tariff}}" data-key="tariff" bindinput="onInput"/></view>
+    </view>
+    <button class="primary" bindtap="calculateResistance">{{mode==='resistance'?'计算电阻':'计算线损功率与电费'}}</button>
+    <view class="result" wx:if="{{resistanceResult}}">
+      <view class="result-main">{{resistanceResult.title}}</view>
+      <view class="result-line" wx:for="{{resistanceResult.lines}}" wx:key="*this">{{item}}</view>
+    </view>
+    <view class="warning">电阻按20℃参考电阻率及温度系数估算；线损按 I²R 计算。未计接头、交流电抗、集肤效应、邻近效应及谐波附加损耗。工程应用须结合实测参数复核。</view>
+  </view>
+  <view class="card">
+    <view class="section-title">最近计算记录</view>
+    <view wx:if="{{history.length===0}}" class="muted">完成计算后自动保存在本机，可离线查看。</view>
+    <view wx:for="{{history}}" wx:key="id" class="history-item"><view><b>{{item.type}}</b> · {{item.time}}</view><view>{{item.result}}</view></view>
+    <button class="secondary" bindtap="clearHistory" wx:if="{{history.length>0}}">清空历史记录</button>
+  </view>
+  <view class="footer">制作人：杨和龙 · PowerOps</view>
+</view>
