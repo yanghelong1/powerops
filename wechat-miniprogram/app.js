@@ -1,0 +1,1 @@
+App({ onLaunch() { const logs = wx.getStorageSync('powerops_launch_logs') || []; logs.unshift(Date.now()); wx.setStorageSync('powerops_launch_logs', logs.slice(0, 10)); } });
