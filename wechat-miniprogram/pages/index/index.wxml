@@ -17,6 +17,7 @@
     <view class="field"><text class="field-label">线路单程长度（m）</text><input class="input" type="digit" value="{{length}}" data-key="length" bindinput="onInput"/></view>
     <view class="field"><text class="field-label">功率因数 cosφ</text><input class="input" type="digit" value="{{pf}}" data-key="pf" bindinput="onInput"/></view>
     <view class="field"><text class="field-label">导体工作温度（℃）</text><input class="input" type="digit" value="{{temperature}}" data-key="temperature" bindinput="onInput"/></view>
+    <view class="field"><text class="field-label">环境温度（℃）</text><picker class="picker" range="{{ambientOptions}}" value="{{ambientIndex}}" bindchange="onAmbientChange">{{ambientOptions[ambientIndex]}}℃</picker></view>
     <view class="field"><text class="field-label">允许电压降（%）</text><input class="input" type="digit" value="{{dropLimit}}" data-key="dropLimit" bindinput="onInput"/></view>
     <view class="field"><text class="field-label">敷设修正</text><picker class="picker" range="{{installOptions}}" value="{{installIndex}}" bindchange="onInstallChange">{{installOptions[installIndex]}}</picker></view>
     <button class="primary" bindtap="calculateSection">推荐电缆截面</button>
