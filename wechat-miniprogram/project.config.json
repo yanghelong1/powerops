@@ -1,0 +1,17 @@
+{
+  "description": "电工运维助手 PowerOps 微信小程序",
+  "packOptions": { "ignore": [{ "type": "folder", "value": ".git" }] },
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "compileHotReLoad": true
+  },
+  "compileType": "miniprogram",
+  "libVersion": "3.10.0",
+  "appid": "touristappid",
+  "projectname": "PowerOps-WeChat",
+  "condition": {}
+}
