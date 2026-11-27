@@ -1,0 +1,11 @@
+{
+  "pages": ["pages/index/index"],
+  "window": {
+    "navigationBarTitleText": "电工运维助手",
+    "navigationBarBackgroundColor": "#10243a",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f3f6fa"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
